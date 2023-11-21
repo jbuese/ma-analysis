@@ -114,7 +114,7 @@ def create_relationship(session, node_id, connected_to_id):
     logging.error(f"🛑 Neo4jError creating relationship for node_id: {node_id} and connected_to_id: {connected_to_id}", exception)
 
 # Step 2: Read the contents of the exported_bib.json file
-with open("exported_bib.json") as file:
+with open("exported_bib.json", encoding="cp437") as file:
   json_data = json.load(file)
 
   with driver.session() as session:
