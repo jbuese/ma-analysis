@@ -1,10 +1,8 @@
 import os
-import json
 import logging
 import requests
 from neo4j import GraphDatabase
 from neo4j.exceptions import DriverError, Neo4jError
-import json
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,7 +30,7 @@ def create_paper_node(session, obj):
     if obj.get("itemType") in ["attachment", "note"]:
       logging.info(f"⏩ Skipping title because it is a note or an attachment")
       return
-    
+
     result = session.run(
       "MATCH (n:paper {title: $title}) RETURN n",
       title=obj.get("title")
@@ -40,9 +38,12 @@ def create_paper_node(session, obj):
     if result.single() is not None:
       logging.info(f"⏩ Skipping title because it is already there: {obj['title']}")
       return
-    
+
     authors = [author["lastName"] for author in obj["creators"] if author["creatorType"] == "author"]
-    author_tag = authors[0] if len(authors) == 1 else " und ".join(authors) if len(authors) == 2 else authors[0] + " et al."
+    author_tag = (
+      authors[0] if len(authors) == 1 else " und ".join(authors)
+      if len(authors) == 2 else authors[0] + " et al."
+    )
     tags = [tag['tag'] for tag in obj['tags'] if not tag['tag'].startswith('round')]
     round = [tag['tag'][6:] for tag in obj['tags'] if tag['tag'].startswith('round')]
 
@@ -61,7 +62,6 @@ def create_paper_node(session, obj):
       tags=tags,
       abstract=obj.get("abstractNote"),
     )
-    node = result.single()[0]
   except (DriverError, Neo4jError) as exception:
     logging.error(f"🛑 Neo4jError processing title: {obj['title']}", exception)
     return
@@ -78,17 +78,17 @@ def create_relationship(session, citation):
     None
   """
   if citation.get("itemType") in ["attachment", "note"]:
-      logging.info(f"⏩ Skipping title because it is a note or an attachment")
-      return
-    
+    logging.info(f"⏩ Skipping title because it is a note or an attachment")
+    return
+
   relations = citation.get("relations", {}).get("dc:relation", [])
   if isinstance(relations, str):
     relations = [relations]
   key_citation = citation.get("key")
-  
+
   for relation in relations:
     key_relation = relation.split("/")[-1]
-  
+
     try:
       session.run(
         "MATCH (n) WHERE n.key = $key_n "
@@ -98,7 +98,10 @@ def create_relationship(session, citation):
         key_m=key_relation
       )
     except (DriverError, Neo4jError) as exception:
-      logging.error(f"🛑 Neo4jError creating relationship for node with key: {key_citation} and node with key: {key_relation}", exception)
+      logging.error(
+        f"🛑 Neo4jError creating relationship for node with key: {key_citation} and node with key: {key_relation}",
+        exception
+      )
 
 def main():
   driver = GraphDatabase.driver(NEO4J_ADDRESS, auth=NEO4J_AUTH)
@@ -113,24 +116,23 @@ def main():
 
   if response.status_code == 200:
     citations = response.json()
-    
+
     # Extract data from each citation
-    citation_data = []
-    for citation in citations:
-      citation_data.append(citation['data'])
-    
+    citation_data = [citation['data'] for citation in citations]
+
     # Create a node for each citation
     for citation in citation_data:
       create_paper_node(session, citation)
-      
+
     # Create the relationship for each citation based on related items
     for citation in citation_data:
       create_relationship(session, citation)
   else:
     print('Failed to retrieve citations from the Zotero API')
-    
+
   # Close the session and driver
   session.close()
   driver.close()
 
-main()
+if __name__ == "__main__":
+  main()
