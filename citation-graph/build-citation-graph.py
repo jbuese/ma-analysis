@@ -147,6 +147,7 @@ def main():
             create_relationship(session, citation)
     else:
         print("Failed to retrieve citations from the Zotero API")
+        print(response)
 
     # Close the session and driver
     session.close()
