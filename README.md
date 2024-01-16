@@ -55,9 +55,7 @@ After all, this is a simple script tailored to my specific needs. There are a lo
 
 ## Survey metrics
 
-While writing my diploma thesis, I did a small survey on the acceptance rates of experts for some meta-requirements for conversational agents (which I had formulated) using Likert scales [^3]. The `survey-metrics` folder contains a jupyter notebook for the plots used in the parts of the thesis where the survey results are analysed. At the moment it contains a plot for the individual weighted acceptance rates for each meta-requirement and a box plot for an overview of all results.
-
----
+While writing the thesis, I did a small survey on the acceptance rates of experts for some meta-requirements for conversational agents (which I had formulated) using Likert scales [^3]. The `survey-metrics` folder contains a jupyter notebook for the plots used in the parts of the thesis where the survey results are analysed. At the moment it contains a plot for the individual weighted acceptance rates for each meta-requirement and a box plot for an overview of all results.
 
 [^1]: https://www.zotero.org/
 [^2]: https://community.limesurvey.org/
